@@ -210,4 +210,69 @@ class SiteController extends Controller
             'model' => $model,
         ]);
     }
+
+    public function actionFileUpload(){
+
+        if ( empty( $_FILES['file'] ) ) {
+
+            echo json_encode( ['error' => 'Не найден файл для загрузки.'] );
+
+            return;
+        }
+
+        $files = $_FILES['file'];
+
+        $success = null;
+
+        $paths = [];
+
+        $filenames = $files['name'];
+
+        $folder = md5(uniqid());
+
+        if ( !file_exists('attachments' . DIRECTORY_SEPARATOR . $folder) ) {
+            mkdir('attachments'. DIRECTORY_SEPARATOR . $folder, 0777, true);
+        }
+
+        for ( $i=0; $i < count($filenames); $i++ ) { 
+            
+            $ext = array_pop(explode( '.', basename($filenames[$i])));
+           
+           $target = "attachments".DIRECTORY_SEPARATOR.$folder.DIRECTORY_SEPARATOR.$folder.".".$ext;
+            
+            if ( move_uploaded_file ( $files['tmp_name'][$i], $target) ) {
+                
+                $success = true;
+                
+                $paths[] = $target;
+
+            } else {
+
+                $success = false;
+
+                break;
+
+            }
+        }
+
+        if ( $success === true ) {
+
+            $output = ['success' => 'Файл загружен.']; 
+
+        } elseif ($success === false) {
+
+            $output = ['error' => 'Невозможно загрузить файл.']; 
+
+            foreach ($paths as $file) {
+                unlink($file);
+            }
+
+        } else {
+
+           $output = ['error' => 'Файли не оброблені.'];
+
+        }
+
+        echo json_encode($output);
+    }
 }

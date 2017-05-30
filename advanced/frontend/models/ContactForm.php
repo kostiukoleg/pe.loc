@@ -15,6 +15,7 @@ class ContactForm extends Model
     public $subject;
     public $body;
     public $verifyCode;
+    public $attachment;
 
 
     /**
@@ -50,12 +51,21 @@ class ContactForm extends Model
      */
     public function sendEmail($email)
     {
-        return Yii::$app->mailer->compose()
+        return $message = Yii::$app->mailer->compose()
             ->setTo($email)
             ->setFrom([$this->email => $this->name])
             ->setReplyTo([$this->email => $this->name])
             ->setSubject($this->subject)
-            ->setTextBody($this->body)
-            ->send();
+            ->setTextBody($this->body);
+            foreach ($this->attachment as $file) {
+                    $filename = 'attachments/' . $file->baseName. $this->id .'.' . $file->extension; # i'd suggest adding an absolute path here, not a relative.
+                    $file->saveAs($filename);
+                    $message->attach($filename);
+                }
+            foreach ($this->attachment as $file) {
+                $array[] = $file;
+            }
+            $this->attachment = implode("|", $array);
+            $message->send();
     }
 }

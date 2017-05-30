@@ -99,8 +99,9 @@ class EmailsController extends Controller
 			}
 
 			$model->save();
-
-			FileHelper::createDirectory('attachments/' . $model->id);
+			if (!is_dir('attachments/' . $model->id)) {
+				FileHelper::createDirectory('attachments/' . $model->id);
+			}
 			$files = explode("|", $model->attachment);
 			foreach ($files as $f) {
 				rename(Yii::getAlias('@webroot').'/attachments/' .$f, Yii::getAlias('@webroot').'/attachments/'.$model->id."/" .$f);
